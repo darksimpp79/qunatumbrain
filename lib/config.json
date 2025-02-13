@@ -1,0 +1,10 @@
+{
+  "apiUrl": "https://api.quantumbrain.com",
+  "version": "1.0.0",
+  "features": {
+    "aiAnalysis": true,
+    "tradingBot": true,
+    "marketPredictions": true
+  }
+}
+
