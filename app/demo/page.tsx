@@ -1,11 +1,11 @@
 "use client"
 
 import type React from "react"
+
 import { useEffect, useRef, useState, useCallback } from "react"
 import { Inter } from "next/font/google"
 import Link from "next/link"
 import { motion, AnimatePresence } from "framer-motion"
-import axios from "axios"
 import {
   ChevronDown,
   LineChart,
@@ -23,8 +23,6 @@ import {
   MessageCircle,
   X,
   Send,
-  TrendingUp,
-  TrendingDown,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
@@ -53,6 +51,7 @@ interface MarketData {
   price: string
   change24h: string
   volume24h: string
+  marketCap: string
   high24h: string
   low24h: string
   volatility: string
@@ -64,24 +63,50 @@ const TIMEFRAMES = [
   { value: "15", label: "15m" },
   { value: "30", label: "30m" },
   { value: "60", label: "1h" },
+  { value: "120", label: "2h" },
   { value: "240", label: "4h" },
-  { value: "D", label: "1d" },
-  { value: "W", label: "1w" },
+  { value: "1D", label: "1D" },
+  { value: "1W", label: "1W" },
 ]
 
 const INDICATORS = [
-  { value: "EMMA", label: "EMMA (30)" },
-  { value: "RSI", label: "RSI" },
+  { value: "MA", label: "Moving Average" },
+  { value: "EMA", label: "Exponential Moving Average" },
   { value: "MACD", label: "MACD" },
+  { value: "RSI", label: "RSI" },
   { value: "BB", label: "Bollinger Bands" },
-  { value: "EMA", label: "EMA (200)" },
-  { value: "SMA", label: "SMA (200)" },
+  { value: "SAR", label: "Parabolic SAR" },
+  { value: "IchimokuCloud", label: "Ichimoku Cloud" },
+  { value: "ATR", label: "Average True Range" },
+  { value: "ADX", label: "ADX" },
+  { value: "CCI", label: "CCI" },
+  { value: "Stochastic", label: "Stochastic" },
+  { value: "Volume", label: "Volume" },
   { value: "VWAP", label: "VWAP" },
+  { value: "OBV", label: "OBV" },
+  { value: "KeltnerChannels", label: "Keltner Channels" },
+  { value: "DonchianChannels", label: "Donchian Channels" },
+  { value: "PivotPointsHighLow", label: "Pivot Points High Low" },
+  { value: "FibonacciRetracement", label: "Fibonacci Retracement" },
+  { value: "ZigZag", label: "Zig Zag" },
+  { value: "HighLowLines", label: "High Low Lines" },
+  { value: "Aroon", label: "Aroon" },
+  { value: "ChaikinOscillator", label: "Chaikin Oscillator" },
+  { value: "ElderRay", label: "Elder Ray" },
+  { value: "ForceIndex", label: "Force Index" },
+  { value: "MassIndex", label: "Mass Index" },
+  { value: "Momentum", label: "Momentum" },
+  { value: "Performance", label: "Performance" },
+  { value: "PriceVolumeTrend", label: "Price Volume Trend" },
+  { value: "RateOfChange", label: "Rate Of Change" },
+  { value: "TRIX", label: "TRIX" },
+  { value: "UltimateOscillator", label: "Ultimate Oscillator" },
+  { value: "VortexIndicator", label: "Vortex Indicator" },
 ]
 
 const LAYOUTS = [
   { value: "single", label: "Single Chart" },
-  { value: "dual", label: "Dual Chart" },
+  { value: "double", label: "Double Chart" },
   { value: "quad", label: "Quad Chart" },
 ]
 
@@ -135,7 +160,7 @@ function MarketDataCard({
 }: {
   title: string
   value: string
-  icon: React.ElementType
+  icon: any
   change?: string
 }) {
   return (
@@ -149,18 +174,14 @@ function MarketDataCard({
           <Icon className="w-4 h-4" />
           <span className="text-sm">{title}</span>
         </div>
-        {change && (
-          <span className={`text-sm ${Number(change) >= 0 ? "text-green-500" : "text-red-500"}`}>
-            {Number(change) >= 0 ? (
-              <TrendingUp className="w-4 h-4 inline" />
-            ) : (
-              <TrendingDown className="w-4 h-4 inline" />
-            )}
+        {change && change !== "0.00" && (
+          <span className={`text-sm ${Number.parseFloat(change) >= 0 ? "text-green-500" : "text-red-500"}`}>
+            {Number.parseFloat(change) > 0 ? "+" : ""}
             {change}%
           </span>
         )}
       </div>
-      <p className="text-xl font-bold mt-2">{value}</p>
+      <p className="text-xl font-bold mt-2">{value === "Error" ? "N/A" : value}</p>
     </motion.div>
   )
 }
@@ -173,6 +194,123 @@ const formatMessage = (content: string) => {
 }
 
 function TradingViewChart() {
+  const [marketData, setMarketData] = useState<MarketData>({
+    price: "$0.00",
+    change24h: "0.00",
+    volume24h: "$0.00M",
+    marketCap: "N/A",
+    high24h: "$0.00",
+    low24h: "$0.00",
+    volatility: "Low",
+  })
+
+  const calculateVolatility = useCallback((change24h: number): string => {
+    const absChange = Math.abs(change24h)
+    if (absChange < 1) return "Low"
+    if (absChange < 5) return "Medium"
+    return "High"
+  }, [])
+
+  const [socket, setSocket] = useState<WebSocket | null>(null)
+
+  useEffect(() => {
+    let ws: WebSocket | null = null
+
+    const connectWebSocket = () => {
+      ws = new WebSocket("wss://stream.binance.com:9443/ws/bnbusdt@ticker")
+
+      ws.onopen = () => {
+        console.log("WebSocket Connected")
+      }
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data)
+          updateMarketData(data)
+        } catch (error) {
+          console.error("Error parsing WebSocket data:", error)
+        }
+      }
+
+      ws.onerror = (error) => {
+        console.error("WebSocket Error:", error)
+        fallbackToRestApi()
+      }
+
+      ws.onclose = () => {
+        console.log("WebSocket Disconnected")
+        fallbackToRestApi()
+      }
+    }
+
+    const fallbackToRestApi = async () => {
+      try {
+        const response = await fetch("https://api.binance.com/api/v3/ticker/24hr?symbol=BNBUSDT")
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        const data = await response.json()
+        updateMarketData(data)
+      } catch (error) {
+        console.error("Error fetching data from REST API:", error)
+        setMarketData((prevData) => ({
+          ...prevData,
+          price: "Error",
+          change24h: "0.00",
+          volume24h: "Error",
+          high24h: "Error",
+          low24h: "Error",
+          volatility: "N/A",
+        }))
+      }
+    }
+
+    const updateMarketData = (data: any) => {
+      const lastPrice = Number.parseFloat(data.lastPrice || data.c || "0")
+      const priceChangePercent = Number.parseFloat(data.priceChangePercent || data.P || "0")
+      const volume = Number.parseFloat(data.volume || data.v || "0")
+      const highPrice = Number.parseFloat(data.highPrice || data.h || "0")
+      const lowPrice = Number.parseFloat(data.lowPrice || data.l || "0")
+
+      const volatility = calculateVolatility(priceChangePercent)
+
+      setMarketData({
+        price: `$${lastPrice.toFixed(2)}`,
+        change24h: priceChangePercent.toFixed(2),
+        volume24h: `$${((volume * lastPrice) / 1e6).toFixed(2)}M`,
+        marketCap: "N/A", // Binance doesn't provide market cap data
+        high24h: `$${highPrice.toFixed(2)}`,
+        low24h: `$${lowPrice.toFixed(2)}`,
+        volatility: volatility,
+      })
+
+      // Update TradingView chart
+      if (chartRef.current && chartRef.current.activeChart) {
+        const chart = chartRef.current.activeChart()
+        const timestamp = data.closeTime || data.E || Date.now()
+
+        chart.series().setData([
+          {
+            time: timestamp / 1000, // Convert to seconds
+            open: lastPrice,
+            high: highPrice,
+            low: lowPrice,
+            close: lastPrice,
+            volume: volume,
+          },
+        ])
+      }
+    }
+
+    connectWebSocket()
+
+    return () => {
+      if (ws) {
+        ws.close()
+      }
+    }
+  }, [calculateVolatility])
+
   const containerRef = useRef<HTMLDivElement>(null)
   const [activeIndicators, setActiveIndicators] = useState<string[]>(["EMMA"])
   const [timeframe, setTimeframe] = useState("60")
@@ -181,140 +319,10 @@ function TradingViewChart() {
   const [layout, setLayout] = useState("single")
   const chartRef = useRef<any>(null)
   const [isChartReady, setIsChartReady] = useState(false)
-  const [currentSymbol, setCurrentSymbol] = useState("BTCUSDT")
-  const [marketData, setMarketData] = useState<MarketData>({
-    price: "Loading...",
-    change24h: "0",
-    volume24h: "Loading...",
-    high24h: "Loading...",
-    low24h: "Loading...",
-    volatility: "Loading...",
-  })
   const [chatInput, setChatInput] = useState("")
   const [chatMessages, setChatMessages] = useState<{ role: string; content: string }[]>([])
   const [isChatOpen, setIsChatOpen] = useState(false)
-
-  const fetchBinanceData = useCallback(async (symbol: string) => {
-    try {
-      const [tickerResponse, dayStatsResponse] = await Promise.all([
-        axios.get(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`),
-        axios.get(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`),
-      ])
-
-      const tickerData = tickerResponse.data
-      const dayStatsData = dayStatsResponse.data
-
-      const price = Number.parseFloat(tickerData.lastPrice).toFixed(2)
-      const change24h = Number.parseFloat(tickerData.priceChangePercent).toFixed(2)
-      const volume24h = `$${((Number.parseFloat(tickerData.volume) * Number.parseFloat(tickerData.lastPrice)) / 1e6).toFixed(2)}M`
-      const high24h = Number.parseFloat(dayStatsData.highPrice).toFixed(2)
-      const low24h = Number.parseFloat(dayStatsData.lowPrice).toFixed(2)
-      const volatility = (
-        ((Number.parseFloat(high24h) - Number.parseFloat(low24h)) / Number.parseFloat(low24h)) *
-        100
-      ).toFixed(2)
-
-      setMarketData({
-        price: `$${price}`,
-        change24h: change24h,
-        volume24h: volume24h,
-        high24h: `$${high24h}`,
-        low24h: `$${low24h}`,
-        volatility: `${volatility}%`,
-      })
-    } catch (error) {
-      console.error("Error fetching Binance data:", error)
-      if (axios.isAxiosError(error)) {
-        console.error("Axios error details:", error.response?.data)
-      }
-      setMarketData({
-        price: "Error",
-        change24h: "0",
-        volume24h: "Error",
-        high24h: "Error",
-        low24h: "Error",
-        volatility: "Error",
-      })
-    }
-  }, [])
-
-  const updateCurrentSymbol = useCallback(() => {
-    if (chartRef.current && chartRef.current.activeChart) {
-      const widget = chartRef.current
-      const symbolInfo = widget.symbolInterval()
-      if (symbolInfo) {
-        const newSymbol = symbolInfo.symbol.replace("BINANCE:", "")
-        setCurrentSymbol(newSymbol)
-        fetchBinanceData(newSymbol)
-      }
-    }
-  }, [fetchBinanceData])
-
-  useEffect(() => {
-    if (containerRef.current) {
-      const script = document.createElement("script")
-      script.src = "https://s3.tradingview.com/tv.js"
-      script.async = true
-      script.onload = () => {
-        if (typeof window.TradingView !== "undefined") {
-          const widgetOptions: any = {
-            width: "100%",
-            height: layout === "single" ? 800 : 400,
-            symbol: "BINANCE:BTCUSDT",
-            interval: timeframe,
-            timezone: "Etc/UTC",
-            theme: isDarkMode ? "dark" : "light",
-            style: chartType === "candlestick" ? "1" : "2",
-            locale: "en",
-            toolbar_bg: isDarkMode ? "#1a1a1a" : "#f1f5f9",
-            enable_publishing: false,
-            allow_symbol_change: true,
-            container_id: "tradingview_chart",
-            studies: activeIndicators.map((ind) => `STD;${ind}`),
-            overrides: {
-              "mainSeriesProperties.candleStyle.upColor": "#22c55e",
-              "mainSeriesProperties.candleStyle.downColor": "#ef4444",
-              "mainSeriesProperties.candleStyle.wickUpColor": "#22c55e",
-              "mainSeriesProperties.candleStyle.wickDownColor": "#ef4444",
-              "paneProperties.background": "#000000",
-              "paneProperties.vertGridProperties.color": isDarkMode ? "#2a2a2a" : "#e2e8f0",
-              "paneProperties.horzGridProperties.color": isDarkMode ? "#2a2a2a" : "#e2e8f0",
-              "scalesProperties.textColor": isDarkMode ? "#ffffff" : "#1a1a1a",
-            },
-            loading_screen: {
-              backgroundColor: "#000000",
-              foregroundColor: "#ec4899",
-            },
-            onChartReady: () => {
-              chartRef.current = (window as any).tvWidget
-              setIsChartReady(true)
-              updateCurrentSymbol()
-            },
-          }
-
-          new window.TradingView.widget(widgetOptions)
-        }
-      }
-      document.head.appendChild(script)
-
-      return () => {
-        document.head.removeChild(script)
-      }
-    }
-  }, [isDarkMode, timeframe, chartType, layout, activeIndicators, updateCurrentSymbol])
-
-  useEffect(() => {
-    if (isChartReady) {
-      const interval = setInterval(updateCurrentSymbol, 5000) // Update every 5 seconds
-      return () => clearInterval(interval)
-    }
-  }, [isChartReady, updateCurrentSymbol])
-
-  const toggleIndicator = (indicator: string) => {
-    setActiveIndicators((prev) =>
-      prev.includes(indicator) ? prev.filter((i) => i !== indicator) : [...prev, indicator],
-    )
-  }
+  //const [scrollY, setScrollY] = useState(0) //Removed scrollY state
 
   const predictNextCandle = useCallback(() => {
     const widget = chartRef.current
@@ -422,11 +430,121 @@ function TradingViewChart() {
     setChatInput("")
   }
 
+  //useEffect(() => { //Removed scrollY useEffect
+  //  const handleScroll = () => setScrollY(window.scrollY)
+  //  window.addEventListener("scroll", handleScroll)
+  //  return () => window.removeEventListener("scroll", handleScroll)
+  //}, [])
+
+  const updateMarketData = useCallback(() => {}, [])
+
+  useEffect(() => {
+    if (containerRef.current) {
+      const script = document.createElement("script")
+      script.src = "https://s3.tradingview.com/tv.js"
+      script.async = true
+      script.onload = () => {
+        if (typeof window.TradingView !== "undefined") {
+          const widgetOptions: any = {
+            width: "100%",
+            height: layout === "single" ? 800 : 400,
+            symbol: "BINANCE:BNBUSDT",
+            interval: timeframe,
+            timezone: "Etc/UTC",
+            theme: isDarkMode ? "dark" : "light",
+            style: chartType === "candlestick" ? "1" : "2",
+            locale: "en",
+            toolbar_bg: isDarkMode ? "#1a1a1a" : "#f1f5f9",
+            enable_publishing: false,
+            allow_symbol_change: true,
+            container_id: "tradingview_chart",
+            studies: activeIndicators.map((ind) => `STD;${ind}`),
+            overrides: {
+              "mainSeriesProperties.candleStyle.upColor": "#22c55e",
+              "mainSeriesProperties.candleStyle.downColor": "#ef4444",
+              "mainSeriesProperties.candleStyle.wickUpColor": "#22c55e",
+              "mainSeriesProperties.candleStyle.wickDownColor": "#ef4444",
+              "paneProperties.background": "#000000",
+              "paneProperties.vertGridProperties.color": isDarkMode ? "#2a2a2a" : "#e2e8f0",
+              "paneProperties.horzGridProperties.color": isDarkMode ? "#2a2a2a" : "#e2e8f0",
+              "scalesProperties.textColor": isDarkMode ? "#ffffff" : "#1a1a1a",
+            },
+            loading_screen: {
+              backgroundColor: "#000000",
+              foregroundColor: "#ec4899",
+            },
+            datafeed: {
+              onReady: (callback) => {
+                setTimeout(() => callback({}))
+              },
+              searchSymbols: (userInput, exchange, symbolType, onResult) => {
+                onResult([])
+              },
+              resolveSymbol: (symbolName, onSymbolResolvedCallback, onResolveErrorCallback) => {
+                onSymbolResolvedCallback({
+                  name: "BNBUSDT",
+                  full_name: "BNBUSDT",
+                  description: "BNB/USDT",
+                  type: "crypto",
+                  session: "24x7",
+                  timezone: "Etc/UTC",
+                  ticker: "BNBUSDT",
+                  minmov: 1,
+                  pricescale: 100000000,
+                  has_intraday: true,
+                  intraday_multipliers: ["1", "5", "15", "30", "60", "240", "1D"],
+                  supported_resolutions: ["1", "5", "15", "30", "60", "240", "1D"],
+                  volume_precision: 8,
+                  data_status: "streaming",
+                })
+              },
+              getBars: (symbolInfo, resolution, periodParams, onHistoryCallback, onErrorCallback) => {
+                // Implement historical data fetching here if needed
+                onHistoryCallback([], { noData: true })
+              },
+              subscribeBars: (symbolInfo, resolution, onRealtimeCallback, subscribeUID, onResetCacheNeededCallback) => {
+                // This will be handled by our WebSocket connection
+              },
+              unsubscribeBars: (subscriberUID) => {
+                // Unsubscribe logic here if needed
+              },
+            },
+            onChartReady: () => {
+              chartRef.current = (window as any).tvWidget
+              setIsChartReady(true)
+            },
+          }
+
+          new window.TradingView.widget(widgetOptions)
+        }
+      }
+      document.head.appendChild(script)
+
+      return () => {
+        document.head.removeChild(script)
+      }
+    }
+  }, [isDarkMode, timeframe, chartType, layout, activeIndicators])
+
+  // Remove this useEffect hook
+  // useEffect(() => {
+  //   fetchMarketData()
+  //   const interval = setInterval(fetchMarketData, 60000) // Fetch every minute
+  //   return () => clearInterval(interval)
+  // }, [fetchMarketData])
+
+  const toggleIndicator = (indicator: string) => {
+    setActiveIndicators((prev) =>
+      prev.includes(indicator) ? prev.filter((i) => i !== indicator) : [...prev, indicator],
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <MarketDataCard title="Price" value={marketData.price} icon={LineChart} change={marketData.change24h} />
         <MarketDataCard title="Volume 24h" value={marketData.volume24h} icon={Volume2} />
+        <MarketDataCard title="Market Cap" value={marketData.marketCap} icon={BarChart3} />
         <MarketDataCard title="24h High" value={marketData.high24h} icon={ArrowUpDown} />
         <MarketDataCard title="24h Low" value={marketData.low24h} icon={ArrowUpDown} />
         <MarketDataCard title="Volatility" value={marketData.volatility} icon={Gauge} />
@@ -560,6 +678,8 @@ function TradingViewChart() {
       </div>
 
       <div className="fixed bottom-4 right-4 z-[9999]">
+        {" "}
+        {/* Updated chat container position */}
         <AnimatePresence>
           {isChatOpen && (
             <motion.div
@@ -567,10 +687,10 @@ function TradingViewChart() {
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 20, scale: 0.3 }}
               transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="absolute bottom-20 right-0 w-96 bg-gray-900 rounded-lg shadow-xl overflow-hidden border border-gray-700"
+              className="absolute bottom-16 right-0 w-96 bg-gray-900 rounded-lg shadow-xl overflow-hidden border border-gray-700"
             >
               <div className="p-4 bg-gradient-to-r from-gray-800 to-gray-700">
-                <h3 className="text-xl font-bold text-gray-100">QUANTUM AI</h3>
+                <h3 className="text-xl font-bold text-gray-100">BNB AI</h3>
               </div>
               <div className="p-4 bg-gray-800">
                 <ScrollArea className="h-64 mb-4">
@@ -583,7 +703,7 @@ function TradingViewChart() {
                             : "bg-gradient-to-r from-pink-500 to-purple-500 text-white"
                         }`}
                       >
-                        <strong>{message.role === "user" ? "You: " : "QuantumAI: "}</strong>
+                        <strong>{message.role === "user" ? "You: " : "BNB Brain: "}</strong>
                         <span dangerouslySetInnerHTML={{ __html: formatMessage(message.content) }} />
                       </span>
                     </div>
@@ -628,7 +748,7 @@ export default function DemoPage() {
             href="/"
             className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent"
           >
-            QUANTUM BRAIN
+            BNB BRAIN
           </Link>
           <Link
             href="/"
@@ -647,7 +767,7 @@ export default function DemoPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            Quantum Brain Trading Dashboard
+            BNB Brain Trading Dashboard
           </motion.h1>
           <motion.div
             className="space-y-6"

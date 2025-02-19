@@ -5,7 +5,7 @@ import type React from "react"
 import { Inter } from "next/font/google"
 import Image from "next/image"
 import { motion, useInView, useAnimation, AnimatePresence } from "framer-motion"
-import { Brain, ChevronRight, Menu, X, MessageCircle, Send, DollarSign, CreditCard, Wallet } from "lucide-react"
+import { Brain, ChevronRight, Menu, X, MessageCircle, Send } from "lucide-react"
 import Link from "next/link"
 import { useState, useRef, useEffect } from "react"
 import { Loader } from "@/components/loader"
@@ -56,7 +56,7 @@ const marketCapTiers = [
   {
     cap: "100M",
     features: [
-      "BNB analysis for all tracked tokens",
+      "Quantum analysis for all tracked tokens",
       "Custom bot development for personal trading strategies",
       "Real-time arbitrage opportunity alerts",
       "Strategic partnerships with major exchanges",
@@ -65,7 +65,7 @@ const marketCapTiers = [
   {
     cap: "500M",
     features: [
-      "BNB AI-powered predictive modeling for all global markets",
+      "Quantum AI-powered predictive modeling for all global markets",
       "Cross-chain DEX aggregator with AI-optimized routing",
       "Exclusive access to high-frequency trading algorithms",
       "VIP networking events with industry leaders and venture capitalists",
@@ -342,7 +342,7 @@ function Header() {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <motion.a
-            href="https://t.me/bnbbrain"
+            href="https://t.me/brain_bnb"
             target="_blank"
             rel="noopener noreferrer"
             className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
@@ -358,23 +358,7 @@ function Header() {
             />
           </motion.a>
           <motion.a
-            href="https://dexscreener.com"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <Image
-              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dex-screener-logo-png_seeklogo-527276-FbEhUvJZYMPVzjX2sOp4mSPkwxfL2a.png"
-              alt="DexScreener"
-              width={24}
-              height={24}
-              className="w-6 h-6 invert"
-            />
-          </motion.a>
-          <motion.a
-            href="https://x.com"
+            href="https://x.com/brain_bnb"
             target="_blank"
             rel="noopener noreferrer"
             className="p-2 rounded-full bg-white/5 hover:bg-white/10 transition-colors"
@@ -390,7 +374,7 @@ function Header() {
             />
           </motion.a>
           <motion.a
-            href="https://t.me/bnbbrain_BNB"
+            href="https://t.me/brain_bnb"
             target="_blank"
             rel="noopener noreferrer"
             className="px-6 py-2 bg-pink-500/20 rounded-full border border-pink-500/30 text-pink-500 hover:bg-pink-500/30 transition-colors flex items-center gap-2"
@@ -418,17 +402,14 @@ function Header() {
           className="md:hidden mt-4 bg-black/80 backdrop-blur-md rounded-lg p-4"
         >
           <div className="flex flex-col space-y-4">
-            <a href="https://t.me/bnbbrain" target="_blank" rel="noopener noreferrer" className="text-white">
+            <a href="https://t.me/brain_bnb" target="_blank" rel="noopener noreferrer" className="text-white">
               Telegram
             </a>
-            <a href="https://dexscreener.com" target="_blank" rel="noopener noreferrer" className="text-white">
-              DexScreener
-            </a>
-            <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="text-white">
+            <a href="https://x.com/brain_bnb" target="_blank" rel="noopener noreferrer" className="text-white">
               X (Twitter)
             </a>
             <a
-              href="https://t.me/bnbbrain_BNB"
+              href="https://t.me/brain_bnb"
               target="_blank"
               rel="noopener noreferrer"
               className="px-6 py-2 bg-pink-500/20 rounded-full border border-pink-500/30 text-pink-500 hover:bg-pink-500/30 transition-colors flex items-center gap-2"
@@ -448,73 +429,6 @@ const formatMessage = (content: string) => {
     .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
     .replace(/\*(.*?)\*/g, "<em>$1</em>")
     .replace(/\n/g, "<br>")
-}
-
-function HowToBuy() {
-  const steps = [
-    {
-      title: "Create a Wallet",
-      description: "Set up a cryptocurrency wallet that supports BNB Chain tokens.",
-      icon: <Wallet className="w-12 h-12 text-pink-500" />,
-    },
-    {
-      title: "Get BNB",
-      description: "Purchase BNB from a major exchange or swap platform.",
-      icon: <DollarSign className="w-12 h-12 text-pink-500" />,
-    },
-    {
-      title: "Connect to DEX",
-      description: "Connect your wallet to a BNB Chain-based decentralized exchange.",
-      icon: <CreditCard className="w-12 h-12 text-pink-500" />,
-    },
-    {
-      title: "Swap for BNBBRAIN",
-      description: "Use the DEX to swap your BNB for BNBBRAIN tokens.",
-      icon: <Brain className="w-12 h-12 text-pink-500" />,
-    },
-  ]
-
-  return (
-    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 to-black py-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.h2
-          className="text-4xl md:text-5xl font-bold text-center mb-12 bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          How To Buy BNBBRAIN
-        </motion.h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {steps.map((step, index) => (
-            <motion.div
-              key={index}
-              className="bg-gray-800 rounded-xl p-6 shadow-lg border border-pink-500/20 hover:border-pink-500/50 transition-all duration-300"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-            >
-              <div className="flex flex-col items-center text-center">
-                <div className="mb-4">{step.icon}</div>
-                <h3 className="text-xl font-semibold mb-2 text-white">{step.title}</h3>
-                <p className="text-gray-400">{step.description}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-        <motion.div
-          className="mt-12 text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-        >
-          <Button className="bg-gradient-to-r from-pink-500 to-purple-500 text-white px-8 py-3 rounded-full text-lg font-semibold hover:from-pink-600 hover:to-purple-600 transition-all duration-300">
-            Get Your BNBBRAIN Now!
-          </Button>
-        </motion.div>
-      </div>
-    </section>
-  )
 }
 
 export default function Home() {
@@ -636,7 +550,7 @@ export default function Home() {
                   transition={{ duration: 0.5, delay: 0.6 }}
                 >
                   <motion.a
-                    href="https://t.me/bnbbrain_BNB"
+                    href="https://t.me/brain_bnb"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-500 rounded-full hover:opacity-90 transition-opacity flex items-center gap-2"
@@ -652,7 +566,7 @@ export default function Home() {
                       className="px-6 py-3 bg-white/5 rounded-full border border-white/10 hover:bg-white/10 transition-colors flex items-center gap-2"
                     >
                       <Brain className="w-5 h-5" />
-                      Try Demo
+                      Try BNB Demo
                     </Link>
                   </motion.div>
                 </motion.div>
@@ -721,8 +635,6 @@ export default function Home() {
             </div>
           </div>
         </ScrollRevealSection>
-
-        <HowToBuy />
       </main>
 
       <div className="fixed bottom-4 right-4 z-[9999]">
@@ -736,7 +648,7 @@ export default function Home() {
               className="absolute bottom-20 right-0 w-96 bg-gray-900 rounded-lg shadow-xl overflow-hidden border border-gray-700"
             >
               <div className="p-4 bg-gradient-to-r from-gray-800 to-gray-700">
-                <h3 className="text-xl font-bold text-gray-100">BNB BRAIN AI</h3>
+                <h3 className="text-xl font-bold text-gray-100">BNB AI</h3>
               </div>
               <div className="p-4 bg-gray-800">
                 <ScrollArea className="h-64 mb-4">
@@ -749,7 +661,7 @@ export default function Home() {
                             : "bg-gradient-to-r from-pink-500 to-purple-500 text-white"
                         }`}
                       >
-                        <strong>{message.role === "user" ? "You: " : "BNB BRAIN AI: "}</strong>
+                        <strong>{message.role === "user" ? "You: " : "BNB Brain: "}</strong>
                         <span dangerouslySetInnerHTML={{ __html: formatMessage(message.content) }} />
                       </span>
                     </div>
@@ -758,7 +670,7 @@ export default function Home() {
                 <form onSubmit={handleChatSubmit} className="flex gap-2">
                   <Input
                     type="text"
-                    placeholder="Enter a crypto pair (e.g., BNB/USDT) for analysis..."
+                    placeholder="Enter a crypto pair (e.g., BTC/USDT) for analysis..."
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     className="flex-grow text-gray-200 placeholder-gray-400 bg-gray-700 border-gray-600"

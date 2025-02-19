@@ -15,10 +15,10 @@ export default function Footer() {
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <Sparkles className="w-6 h-6 text-pink-500" />
-              <h3 className="text-xl font-bold text-white">QUANTUM BRAIN</h3>
+              <h3 className="text-xl font-bold text-white">BNB BRAIN</h3>
             </div>
             <p className="text-gray-300 text-sm leading-relaxed">
-              The most magical AI token in the cryptoverse! Join our community and experience the power of quantum
+              The most magical AI token in the cryptoverse! Join our community and experience the power of BNB-powered
               intelligence! ✨ ✨
             </p>
           </div>
@@ -34,7 +34,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="#" className="text-gray-300 hover:text-pink-400 transition-colors text-sm">
-                  Buy QBRAIN
+                  Buy BNBBRAIN
                 </Link>
               </li>
               <li>
@@ -49,7 +49,7 @@ export default function Footer() {
           <div>
             <h4 className="text-lg font-semibold text-white mb-4">Community</h4>
             <div className="flex gap-4">
-              <Link href="#" className="text-gray-300 hover:text-pink-400 transition-colors">
+              <Link href="https://t.me/brain_bnb" className="text-gray-300 hover:text-pink-400 transition-colors">
                 <Image
                   src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/icons8-telegram-app-IHtUBvQANcAcpwIhqNbahfAEgHZ0zD.gif"
                   alt="Telegram"
@@ -58,22 +58,13 @@ export default function Footer() {
                   className="w-6 h-6"
                 />
               </Link>
-              <Link href="#" className="text-gray-300 hover:text-pink-400 transition-colors">
+              <Link href="https://x.com/brain_bnb" className="text-gray-300 hover:text-pink-400 transition-colors">
                 <Image
                   src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/icons8-x%20(2)-vTO7qE3Yhmku80NUagYzuPWBYBC9Pu.svg"
                   alt="X (Twitter)"
                   width={24}
                   height={24}
                   className="w-6 h-6"
-                />
-              </Link>
-              <Link href="#" className="text-gray-300 hover:text-pink-400 transition-colors">
-                <Image
-                  src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/dex-screener-logo-png_seeklogo-527276-FbEhUvJZYMPVzjX2sOp4mSPkwxfL2a.png"
-                  alt="DexScreener"
-                  width={24}
-                  height={24}
-                  className="w-6 h-6 invert"
                 />
               </Link>
             </div>
@@ -97,7 +88,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="mt-12 pt-8 border-t border-white/10 text-center">
-          <p className="text-gray-400 text-sm">© {new Date().getFullYear()} QUANTUM BRAIN. All rights reserved.</p>
+          <p className="text-gray-400 text-sm">© {new Date().getFullYear()} BNB BRAIN. All rights reserved.</p>
         </div>
       </div>
     </footer>

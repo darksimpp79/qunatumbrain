@@ -94,7 +94,7 @@ export default function ChartPage() {
                 />
               </div>
               <span className="text-xl font-bold bg-gradient-to-r from-orange-500 via-purple-500 to-green-500 text-transparent bg-clip-text">
-                QUANTUMBRAIN
+                BNBBRAIN
               </span>
             </Link>
             <Link href="/" className="text-white hover:text-purple-400 transition-colors">

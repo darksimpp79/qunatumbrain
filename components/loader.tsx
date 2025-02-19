@@ -33,6 +33,7 @@ export function Loader() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
         >
+          {/* Update the loader text */}
           {["BNB", "BRAIN"].map((word, wordIndex) => (
             <div key={wordIndex} className="flex justify-center items-center space-x-4">
               {word.split("").map((letter, index) => (
@@ -105,5 +106,9 @@ export function Loader() {
       </div>
     </div>
   )
+}
+
+{
+  /* BNB BRAIN loader animation */
 }
 
