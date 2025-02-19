@@ -193,11 +193,9 @@ function TradingViewChart() {
   const [chatInput, setChatInput] = useState("")
   const [chatMessages, setChatMessages] = useState<{ role: string; content: string }[]>([])
   const [isChatOpen, setIsChatOpen] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const fetchBinanceData = useCallback(async (symbol: string) => {
     try {
-      setError(null)
       const [tickerResponse, dayStatsResponse] = await Promise.all([
         axios.get(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`),
         axios.get(`https://api.binance.com/api/v3/ticker/24hr?symbol=${symbol}`),
@@ -226,7 +224,9 @@ function TradingViewChart() {
       })
     } catch (error) {
       console.error("Error fetching Binance data:", error)
-      setError("Failed to fetch market data. Please try again later.")
+      if (axios.isAxiosError(error)) {
+        console.error("Axios error details:", error.response?.data)
+      }
       setMarketData({
         price: "Error",
         change24h: "0",
@@ -249,18 +249,6 @@ function TradingViewChart() {
       }
     }
   }, [fetchBinanceData])
-
-  useEffect(() => {
-    // Fetch initial data
-    fetchBinanceData(currentSymbol)
-
-    // Set up polling for real-time updates
-    const intervalId = setInterval(() => {
-      fetchBinanceData(currentSymbol)
-    }, 5000) // Update every 5 seconds
-
-    return () => clearInterval(intervalId)
-  }, [currentSymbol, fetchBinanceData])
 
   useEffect(() => {
     if (containerRef.current) {
@@ -436,7 +424,6 @@ function TradingViewChart() {
 
   return (
     <div className="space-y-6">
-      {error && <div className="bg-red-500/20 border border-red-500 text-red-100 p-4 rounded-lg">{error}</div>}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
         <MarketDataCard title="Price" value={marketData.price} icon={LineChart} change={marketData.change24h} />
         <MarketDataCard title="Volume 24h" value={marketData.volume24h} icon={Volume2} />
@@ -583,7 +570,7 @@ function TradingViewChart() {
               className="absolute bottom-20 right-0 w-96 bg-gray-900 rounded-lg shadow-xl overflow-hidden border border-gray-700"
             >
               <div className="p-4 bg-gradient-to-r from-gray-800 to-gray-700">
-                <h3 className="text-xl font-bold text-gray-100">BNB AI</h3>
+                <h3 className="text-xl font-bold text-gray-100">QUANTUM AI</h3>
               </div>
               <div className="p-4 bg-gray-800">
                 <ScrollArea className="h-64 mb-4">
@@ -596,7 +583,7 @@ function TradingViewChart() {
                             : "bg-gradient-to-r from-pink-500 to-purple-500 text-white"
                         }`}
                       >
-                        <strong>{message.role === "user" ? "You: " : "BNBAI: "}</strong>
+                        <strong>{message.role === "user" ? "You: " : "QuantumAI: "}</strong>
                         <span dangerouslySetInnerHTML={{ __html: formatMessage(message.content) }} />
                       </span>
                     </div>
@@ -641,7 +628,7 @@ export default function DemoPage() {
             href="/"
             className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-purple-500 bg-clip-text text-transparent"
           >
-            BNB BRAIN
+            QUANTUM BRAIN
           </Link>
           <Link
             href="/"
@@ -660,7 +647,7 @@ export default function DemoPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            BNB Brain Trading Dashboard
+            Quantum Brain Trading Dashboard
           </motion.h1>
           <motion.div
             className="space-y-6"

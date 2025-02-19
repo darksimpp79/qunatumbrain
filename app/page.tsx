@@ -664,7 +664,7 @@ export default function Home() {
                 transition={{ duration: 0.5, delay: 0.6 }}
               >
                 <Image
-                  src="https://sjc.microlink.io/JdfoH4a68TUwOT-JCMwl3DHUStE8oK-uZiRq8fzbgNiUs4Waixo5mKXYottyMd2EP671PCYayzmjHW9uz-TRrQ.jpeg"
+                  src="https://sjc.microlink.io/mJ__W7CGRDjHA3uxpraNtyhh_YSyMjtAmuTUWiSnq8aKYvWvj58kWb4N2aswUhGbYO3z1V3YfvkE420Vjldi7Q.jpeg"
                   alt="Platform Preview"
                   width={600}
                   height={400}
